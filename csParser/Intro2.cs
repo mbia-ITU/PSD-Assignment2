@@ -1,68 +1,73 @@
 class Expr { }
 
-class CstI : Expr {
+class CstI : Expr
+{
     int value;
-    CstI(int val)
+    public CstI(int val)
     {
         value = val;
     }
-    string toString() {
-        return value.toString();
-    }
+    public override string ToString() => value.ToString();
+
 }
 
-class Var : Expr {
+class Var : Expr
+{
     string name;
-    Var (string s)
+    public Var(string s)
     {
         name = s;
     }
 
-    string toString()
-    {
-        return name;
-    }
+    public override string ToString() => name;
 }
 
-abstract class Binop : Expr {
-    Expr exp1;
-    Expr exp2;
+abstract class Binop : Expr
+{
+    public Expr exp1;
+    public Expr exp2;
 
-    string toString(string ope) {
+    public Binop(Expr a, Expr b)
+    {
+        exp1 = a;
+        exp2 = b;
+    }
+
+    public string Print(string ope)
+    {
         return $"({exp1} {ope} {exp2})";
     }
 }
 
-class Add : Binop {
-    Add(Expr a, Expr b) {
-        base.exp1 = a;
-        base.exp2 = b;
-    }
-    string toString() => base.toString("+");
+class Add : Binop
+{
+    public Add(Expr exp1, Expr exp2) : base(exp1, exp2) { }
+
+    public override string ToString() => Print("+");
 }
-class Sub : Binop {
-    Sub(Expr a, Expr b)
-    {
-        base.exp1 = a;
-        base.exp2 = b;
-    }
-    string toString() => base.toString("-");
+class Sub : Binop
+{
+    public Sub(Expr exp1, Expr exp2) : base(exp1, exp2) { }
+    public override string ToString() => Print("-");
 }
-class Mul : Binop {
-    Mul(Expr a, Expr b)
-    {
-        base.exp1 = a;
-        base.exp2 = b;
-    }
-    string toString() => base.toString("*");
+class Mul : Binop
+{
+    public Mul(Expr exp1, Expr exp2) : base(exp1, exp2) { }
+    public override string ToString() => Print("*");
 }
 
-public void main(string[] args)
+class Program
 {
-    var e1 = Mul(CstI(10), CstI(2));
-    var e2 = Add(Var("v"), CstI(10));
-    var e3 = Sub(e1, CstI(20));
-    Console.WriteLine(e1);
-    Console.WriteLine(e2);
-    Console.WriteLine(e3);
+    public static void Main()
+    {
+        var e1 = new Mul(new CstI(10), new CstI(2));
+        var e2 = new Add(new Var("v"), new CstI(10));
+        var e3 = new Sub(e1, new CstI(20));
+        Console.WriteLine(e1);
+        Console.WriteLine(e2);
+        Console.WriteLine(e3);
+    }
 }
+
+
+
