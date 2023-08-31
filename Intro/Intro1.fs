@@ -28,7 +28,7 @@ let rec eval (e : expr) : int =
     | Prim _            -> failwith "unknown primitive";;
 
 let e1v = eval e0;;
-let e1v = eval e1;;
+let e1vPrime = eval e1;;
 let e2v = eval e2;;
 let e3v = eval e3;;
 
