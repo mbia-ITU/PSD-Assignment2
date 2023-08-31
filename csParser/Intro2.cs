@@ -1,8 +1,9 @@
+namespace Intro;
 class Expr { }
 
 class CstI : Expr
 {
-    int value;
+    readonly int value;
     public CstI(int val)
     {
         value = val;
@@ -13,7 +14,7 @@ class CstI : Expr
 
 class Var : Expr
 {
-    string name;
+    readonly string name;
     public Var(string s)
     {
         name = s;
