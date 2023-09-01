@@ -17,6 +17,8 @@ type expr =
 (* Some closed expressions: *)
 
 let e1 = Let([("z", CstI 17)], Prim("+", Var "z", Var "z"));;
+
+let e1free = Let([("z", CstI 17)], Prim("+", Var "z", Var "q"));;
 let e1prime = Let([("z", CstI 17); ("u", CstI 400)], Prim("+", Var "z", Var "u"));;
 
 let e2 = Let([("z", CstI 17)], 
@@ -213,9 +215,13 @@ let rec freevars e : string list =
     match e with
     | CstI i -> []
     | Var x  -> [x]
-    | Let(x, erhs, ebody) -> 
-          union (freevars erhs, minus (freevars ebody, [x]))
+    | Let(bindings, expr) ->
+        List.fold (fun _ (identifier, expr1) -> union (freevars expr1, minus (freevars expr, [identifier]))) [] bindings
     | Prim(ope, e1, e2) -> union (freevars e1, freevars e2);;
+
+
+(*| Let(x, erhs, ebody) -> 
+          union (freevars erhs, minus (freevars ebody, [x]))*)
 
 (* Alternative definition of closed *)
 
@@ -247,9 +253,10 @@ let rec tcomp (e : expr) (cenv : string list) : texpr =
     match e with
     | CstI i -> TCstI i
     | Var x  -> TVar (getindex cenv x)
-    | Let(x, erhs, ebody) -> 
-      let cenv1 = x :: cenv 
-      TLet(tcomp erhs cenv, tcomp ebody cenv1)
+    | Let(bindings, exprBody) ->
+        let cenv1 = x :: cenv 
+        TLet(tcomp erhs cenv, tcomp ebody cenv1) (* continue here*)
+      TLet(tcomp erhs cenv, tcomp exprBody newEnv)
     | Prim(ope, e1, e2) -> TPrim(ope, tcomp e1 cenv, tcomp e2 cenv);;
 
 (* Evaluation of target expressions with variable indexes.  The
