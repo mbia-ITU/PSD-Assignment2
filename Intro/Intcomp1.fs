@@ -19,7 +19,11 @@ type expr =
 let e1 = Let([("z", CstI 17)], Prim("+", Var "z", Var "z"));;
 
 let e1free = Let([("z", CstI 17)], Prim("+", Var "z", Var "q"));;
-let e1prime = Let([("z", CstI 17); ("u", CstI 400)], Prim("+", Var "z", Var "u"));;
+let e1prime = Let([("p", CstI 17);("q", CstI 17); ("z", CstI 17); ("u", CstI 400)], Prim("+", Var "z", Var "u"));;
+
+let e1primeprime = Let([("u", CstI 400)], Prim("+", Var "u", Var "u"));;
+
+
 
 let e2 = Let([("z", CstI 17)], 
              Prim("+", Let([("z", CstI 22)], Prim("*", CstI 100, Var "z")),
@@ -245,20 +249,21 @@ type texpr =                            (* target expressions *)
 
 let rec getindex vs x = 
     match vs with 
-    | []    -> failwith "Variable not found"
+    | []    -> failwith (sprintf "Variable not found %A %s" vs x )
     | y::yr -> if x=y then 0 else 1 + getindex yr x;;
 
 (* Compiling from expr to texpr *)
-
+(* tcomp func has been changed *)
 let rec tcomp (e : expr) (cenv : string list) : texpr =
     match e with
     | CstI i -> TCstI i
     | Var x  -> TVar (getindex cenv x)
     | Let(bindings, exprBody) ->
-        let cenv1 = x :: cenv 
-        TLet(tcomp erhs cenv, tcomp ebody cenv1) (* continue here*)
-      TLet(tcomp erhs cenv, tcomp exprBody newEnv)
+        match bindings with
+        | [] -> tcomp exprBody cenv
+        | (id, expr)::xs -> TLet(tcomp expr cenv, tcomp (Let(xs,exprBody)) (id:: cenv))
     | Prim(ope, e1, e2) -> TPrim(ope, tcomp e1 cenv, tcomp e2 cenv);;
+
 
 (* Evaluation of target expressions with variable indexes.  The
    run-time environment renv is a list of variable values (ints).  *)
@@ -275,6 +280,10 @@ let rec teval (e : texpr) (renv : int list) : int =
     | TPrim("*", e1, e2) -> teval e1 renv * teval e2 renv
     | TPrim("-", e1, e2) -> teval e1 renv - teval e2 renv
     | TPrim _            -> failwith "unknown primitive";;
+
+let w = teval (tcomp e1prime []) [];;
+tcomp e1prime [];;
+
 
 (* Correctness: eval e []  equals  teval (tcomp e []) [] *)
 
