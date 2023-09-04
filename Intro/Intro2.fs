@@ -54,7 +54,7 @@ let a2 = Mul(CstI 2, Sub(Var "v", Add(Var "w", Var "z")));;
 let a3 = Add(Var "x", Add(Var "y", Add(Var "z", Var "v")));;
 
 (* Evaluation within an environment *)
-
+(* eval func has been changed *)
 let rec eval (e:expr) (env : (string * int) list) : int =
     match e with
     | expr.CstI i            -> i
@@ -72,6 +72,7 @@ let rec eval (e:expr) (env : (string * int) list) : int =
         | _     -> failwith "unknown primitive"
     | If(e1, e2, e3) -> if (eval e1 env <> 0) then (eval e2 env) else (eval e3 env);;
 
+(* fmt func has been added and changed *)
 let rec fmt a : string =
     match a with
     | CstI i -> sprintf "%d" i
@@ -80,6 +81,7 @@ let rec fmt a : string =
     | Sub(i1, i2) -> sprintf "(%s - %s)" (fmt i1) (fmt i2)
     | Mul(i1, i2) -> sprintf "(%s * %s)" (fmt i1) (fmt i2);;
 
+(* simplify func has been changed *)
 let rec simplify a = 
     match a with 
     | CstI i -> CstI i
@@ -108,6 +110,7 @@ let rec simplify a =
         | (CstI 1, x) -> x
         | (a1, x2) -> Mul (a1, x2);;
 
+(* diff func has been added and changed *)
 let rec diff a diffvar = 
     match a with
     | CstI _ -> CstI 0

@@ -49,6 +49,7 @@ let rec lookup env x =
     | []        -> failwith (x + " not found")
     | (y, v)::r -> if x=y then v else lookup r x;;
 
+(* eval func has been changed *)
 let rec eval e (env : (string * int) list) : int =
     match e with
     | CstI i            -> i
@@ -134,18 +135,18 @@ let e6s2 = nsubst e6 [("z", Prim("-", CstI 5, CstI 4))];;
 let e6s3 = nsubst e6 [("z", Prim("+", Var "z", Var "z"))];;
 
 // Shows that only z outside the Let gets substituted:
-let e7 = Prim("+", Let("z", CstI 22, Prim("*", CstI 5, Var "z")),
+let e7 = Prim("+", Let([("z", CstI 22)], Prim("*", CstI 5, Var "z")),
                    Var "z");;
 
 let e7s1 = nsubst e7 [("z", CstI 100)];;
 
 // Shows that only the z in the Let rhs gets substituted
-let e8 = Let("z", Prim("*", CstI 22, Var "z"), Prim("*", CstI 5, Var "z"));;
+let e8 = Let([("z", Prim("*", CstI 22, Var "z"))], Prim("*", CstI 5, Var "z"));;
 
 let e8s1 = nsubst e8 [("z", CstI 100)];;
 
 // Shows (wrong) capture of free variable z under the let:
-let e9 = Let("z", CstI 22, Prim("*", Var "y", Var "z"));;
+let e9 = Let([("z", CstI 22)], Prim("*", Var "y", Var "z"));;
 
 let e9s1 = nsubst e9 [("y", Var "z")];;
 
@@ -210,7 +211,7 @@ let rec minus (xs, ys) =
                else x :: minus (xr, ys);;
 
 (* Find all variables that occur free in expression e *)
-
+(* freevars func has been changed *)
 let rec freevars e : string list =
     match e with
     | CstI i -> []
