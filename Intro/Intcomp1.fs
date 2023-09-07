@@ -10,39 +10,31 @@ module Intcomp1
 type expr = 
   | CstI of int
   | Var of string
-  | Let of (string * expr) list * expr
+  | Let of string * expr * expr
   | Prim of string * expr * expr;;
-
 
 (* Some closed expressions: *)
 
-let e1 = Let([("z", CstI 17)], Prim("+", Var "z", Var "z"));;
+let e1 = Let("z", CstI 17, Prim("+", Var "z", Var "z"));;
 
-let e1free = Let([("z", CstI 17)], Prim("+", Var "z", Var "q"));;
-let e1prime = Let([("p", CstI 17);("q", CstI 17); ("z", CstI 17); ("u", CstI 400)], Prim("+", Var "z", Var "u"));;
-
-let e1primeprime = Let([("u", CstI 400)], Prim("+", Var "u", Var "u"));;
-
-
-
-let e2 = Let([("z", CstI 17)], 
-             Prim("+", Let([("z", CstI 22)], Prim("*", CstI 100, Var "z")),
+let e2 = Let("z", CstI 17, 
+             Prim("+", Let("z", CstI 22, Prim("*", CstI 100, Var "z")),
                        Var "z"));;
 
-let e3 = Let([("z", Prim("-", CstI 5, CstI 4))], 
+let e3 = Let("z", Prim("-", CstI 5, CstI 4), 
              Prim("*", CstI 100, Var "z"));;
 
-let e4 = Prim("+", Prim("+", CstI 20, Let([("z", CstI 17)], 
+let e4 = Prim("+", Prim("+", CstI 20, Let("z", CstI 17, 
                                           Prim("+", Var "z", CstI 2))),
                    CstI 30);;
 
-let e5 = Prim("*", CstI 2, Let([("x", CstI 3)], Prim("+", Var "x", CstI 4)));;
+let e5 = Prim("*", CstI 2, Let("x", CstI 3, Prim("+", Var "x", CstI 4)));;
 
-let e6 = Let([("z", Var "x")], Prim("+", Var "z", Var "x"))
-let e7 = Let([("z", CstI 3)], Let([("y", Prim("+", Var "z", CstI 1))], Prim("+", Var "z", Var "y")))
-let e8 = Let([("z", Let([("x", CstI 4)], Prim("+", Var "x", CstI 5)))], Prim("*", Var "z", CstI 2))
-let e9 = Let([("z", CstI 3)], Let([("y", Prim("+", Var "z", CstI 1))], Prim("+", Var "x", Var "y")))
-let e10 = Let([("z", Prim("+", Let([("x", CstI 4)], Prim("+", Var "x", CstI 5)), Var "x"))], Prim("*", Var "z", CstI 2))
+let e6 = Let("z", Var "x", Prim("+", Var "z", Var "x"))
+let e7 = Let("z", CstI 3, Let("y", Prim("+", Var "z", CstI 1), Prim("+", Var "z", Var "y")))
+let e8 = Let("z", Let("x", CstI 4, Prim("+", Var "x", CstI 5)), Prim("*", Var "z", CstI 2))
+let e9 = Let("z", CstI 3, Let("y", Prim("+", Var "z", CstI 1), Prim("+", Var "x", Var "y")))
+let e10 = Let("z", Prim("+", Let("x", CstI 4, Prim("+", Var "x", CstI 5)), Var "x"), Prim("*", Var "z", CstI 2))
 
 (* ---------------------------------------------------------------------- *)
 
@@ -53,14 +45,14 @@ let rec lookup env x =
     | []        -> failwith (x + " not found")
     | (y, v)::r -> if x=y then v else lookup r x;;
 
-(* eval func has been changed *)
 let rec eval e (env : (string * int) list) : int =
     match e with
     | CstI i            -> i
     | Var x             -> lookup env x 
-    | Let(bindings, expr) -> 
-      let xval = List.fold (fun state (identity, expr) -> (identity, eval expr state) :: state ) env bindings
-      eval expr xval
+    | Let(x, erhs, ebody) -> 
+      let xval = eval erhs env
+      let env1 = (x, xval) :: env 
+      eval ebody env1
     | Prim("+", e1, e2) -> eval e1 env + eval e2 env
     | Prim("*", e1, e2) -> eval e1 env * eval e2 env
     | Prim("-", e1, e2) -> eval e1 env - eval e2 env
@@ -139,18 +131,18 @@ let e6s2 = nsubst e6 [("z", Prim("-", CstI 5, CstI 4))];;
 let e6s3 = nsubst e6 [("z", Prim("+", Var "z", Var "z"))];;
 
 // Shows that only z outside the Let gets substituted:
-let e7 = Prim("+", Let([("z", CstI 22)], Prim("*", CstI 5, Var "z")),
+let e7 = Prim("+", Let("z", CstI 22, Prim("*", CstI 5, Var "z")),
                    Var "z");;
 
 let e7s1 = nsubst e7 [("z", CstI 100)];;
 
 // Shows that only the z in the Let rhs gets substituted
-let e8 = Let([("z", Prim("*", CstI 22, Var "z"))], Prim("*", CstI 5, Var "z"));;
+let e8 = Let("z", Prim("*", CstI 22, Var "z"), Prim("*", CstI 5, Var "z"));;
 
 let e8s1 = nsubst e8 [("z", CstI 100)];;
 
 // Shows (wrong) capture of free variable z under the let:
-let e9 = Let([("z", CstI 22)], Prim("*", Var "y", Var "z"));;
+let e9 = Let("z", CstI 22, Prim("*", Var "y", Var "z"));;
 
 let e9s1 = nsubst e9 [("y", Var "z")];;
 
@@ -215,18 +207,14 @@ let rec minus (xs, ys) =
                else x :: minus (xr, ys);;
 
 (* Find all variables that occur free in expression e *)
-(* freevars func has been changed *)
+
 let rec freevars e : string list =
     match e with
     | CstI i -> []
     | Var x  -> [x]
-    | Let(bindings, expr) ->
-        List.fold (fun _ (identifier, expr1) -> union (freevars expr1, minus (freevars expr, [identifier]))) [] bindings
+    | Let(x, erhs, ebody) -> 
+          union (freevars erhs, minus (freevars ebody, [x]))
     | Prim(ope, e1, e2) -> union (freevars e1, freevars e2);;
-
-
-(*| Let(x, erhs, ebody) -> 
-          union (freevars erhs, minus (freevars ebody, [x]))*)
 
 (* Alternative definition of closed *)
 
@@ -249,21 +237,19 @@ type texpr =                            (* target expressions *)
 
 let rec getindex vs x = 
     match vs with 
-    | []    -> failwith (sprintf "Variable not found %A %s" vs x )
+    | []    -> failwith "Variable not found"
     | y::yr -> if x=y then 0 else 1 + getindex yr x;;
 
 (* Compiling from expr to texpr *)
-(* tcomp func has been changed *)
+
 let rec tcomp (e : expr) (cenv : string list) : texpr =
     match e with
     | CstI i -> TCstI i
     | Var x  -> TVar (getindex cenv x)
-    | Let(bindings, exprBody) ->
-        match bindings with
-        | [] -> tcomp exprBody cenv
-        | (id, expr)::xs -> TLet(tcomp expr cenv, tcomp (Let(xs,exprBody)) (id:: cenv))
+    | Let(x, erhs, ebody) -> 
+      let cenv1 = x :: cenv 
+      TLet(tcomp erhs cenv, tcomp ebody cenv1)
     | Prim(ope, e1, e2) -> TPrim(ope, tcomp e1 cenv, tcomp e2 cenv);;
-
 
 (* Evaluation of target expressions with variable indexes.  The
    run-time environment renv is a list of variable values (ints).  *)
@@ -280,10 +266,6 @@ let rec teval (e : texpr) (renv : int list) : int =
     | TPrim("*", e1, e2) -> teval e1 renv * teval e2 renv
     | TPrim("-", e1, e2) -> teval e1 renv - teval e2 renv
     | TPrim _            -> failwith "unknown primitive";;
-
-let w = teval (tcomp e1prime []) [];;
-tcomp e1prime [];;
-
 
 (* Correctness: eval e []  equals  teval (tcomp e []) [] *)
 
