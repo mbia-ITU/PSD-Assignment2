@@ -122,7 +122,7 @@ let rec nsubst (e : expr) (env : (string * expr) list) : expr =
 
 (* Some expressions with free variables: *)
 
-let e6 = Prim("+", Var "y", Var "z");;
+//let e6 = Prim("+", Var "y", Var "z");;
 
 let e6s1 = nsubst e6 [("z", CstI 17)];;
 
@@ -131,18 +131,18 @@ let e6s2 = nsubst e6 [("z", Prim("-", CstI 5, CstI 4))];;
 let e6s3 = nsubst e6 [("z", Prim("+", Var "z", Var "z"))];;
 
 // Shows that only z outside the Let gets substituted:
-let e7 = Prim("+", Let("z", CstI 22, Prim("*", CstI 5, Var "z")),
-                   Var "z");;
+//let e7 = Prim("+", Let("z", CstI 22, Prim("*", CstI 5, Var "z")),
+                   //Var "z");;
 
 let e7s1 = nsubst e7 [("z", CstI 100)];;
 
 // Shows that only the z in the Let rhs gets substituted
-let e8 = Let("z", Prim("*", CstI 22, Var "z"), Prim("*", CstI 5, Var "z"));;
+//let e8 = Let("z", Prim("*", CstI 22, Var "z"), Prim("*", CstI 5, Var "z"));;
 
 let e8s1 = nsubst e8 [("z", CstI 100)];;
 
 // Shows (wrong) capture of free variable z under the let:
-let e9 = Let("z", CstI 22, Prim("*", Var "y", Var "z"));;
+//let e9 = Let("z", CstI 22, Prim("*", Var "y", Var "z"));;
 
 let e9s1 = nsubst e9 [("y", Var "z")];;
 
@@ -366,6 +366,22 @@ let rec scomp (e : expr) (cenv : stackvalue list) : sinstr list =
           scomp e1 cenv @ scomp e2 (Value :: cenv) @ [SMul] 
     | Prim _ -> failwith "scomp: unknown operator";;
 
+(*single_assemble, assemble and bytecodes are made by Recursive Rebels*)
+let single_assemble (s: sinstr) : int list = 
+    match s with
+    | SCstI x -> [0; x]
+    | SVar x -> [1; x]
+    | SAdd -> [2]
+    | SSub -> [3]
+    | SMul -> [4]
+    | SPop -> [5]
+    | SSwap -> [6];;
+
+let assemble (s: sinstr list) : int list = 
+    List.map single_assemble s |> List.collect id ;;
+
+let bytecodes (e: expr) env =  scomp e env |> assemble;;
+
 let s1 = scomp e1 [];;
 let s2 = scomp e2 [];;
 let s3 = scomp e3 [];;
@@ -376,5 +392,11 @@ let s5 = scomp e5 [];;
 let intsToFile (inss : int list) (fname : string) = 
     let text = String.concat " " (List.map string inss)
     System.IO.File.WriteAllText(fname, text);;
+
+(*The last two methods are made by Recursive Rebels*)
+let bytecodesToFile (e: expr) env = intsToFile (bytecodes e env);;
+
+let e0 = CstI(400);;
+bytecodesToFile e0 [] "file3";;
 
 (* -----------------------------------------------------------------  *)
