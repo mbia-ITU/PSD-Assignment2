@@ -1,11 +1,11 @@
-# 1 "hello.fsl"
+# 1 "hello2.fsl"
   // starting
 
 module Hello_fslex
 open FSharp.Text.Lexing
 open System
 
-# 8 "hello.fs"
+# 8 "hello2.fs"
 let trans : uint16[] array = 
     [| 
     (* State 0 *)
@@ -24,18 +24,18 @@ let rec _fslex_dummy () = _fslex_dummy()
 and Tokenize  lexbuf =
   match _fslex_tables.Interpret(0,lexbuf) with
   | 0 -> ( 
-# 9 "hello.fsl"
+# 9 "hello2.fsl"
                                       LexBuffer<char>.LexemeString lexbuf 
-# 29 "hello.fs"
+# 29 "hello2.fs"
           )
   | 1 -> ( 
-# 10 "hello.fsl"
+# 10 "hello2.fsl"
                                      failwith "Lexer error: illegal symbol" 
-# 34 "hello.fs"
+# 34 "hello2.fs"
           )
   | _ -> failwith "Tokenize"
 
-# 13 "hello.fsl"
+# 13 "hello2.fsl"
   // ending
 
 [<EntryPoint>]
@@ -47,4 +47,4 @@ let main argv =
       0
 
 
-# 3000000 "hello.fs"
+# 3000000 "hello2.fs"
