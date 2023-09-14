@@ -7,6 +7,13 @@
 * use `dotnet build` to build the project.
 * find the exe in the bin folder
 
+## Windows using FSI
+
+* use `dotnet fsi FsLexYacc.Runtime.dll <filename>.fs`, to open a interactive session with the files
+* open the module
+* run the main function from FSI
+
+
 ## For Mac
 
 * `mono ~/bin/fsharp/fslex.exe --unicode <filename>.fsl`
